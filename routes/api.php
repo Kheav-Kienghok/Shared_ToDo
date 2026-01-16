@@ -18,6 +18,9 @@ Route::prefix("auth")->group(function () {
     });
 });
 
-Route::middleware("jwt")->group(function () {
-    Route::apiResource("tasks", TasksController::class);
+/**
+ * @Scramble\SecurityScheme(name="jwt")
+ */
+Route::middleware('jwt')->group(function () {
+    Route::apiResource('tasks', TasksController::class);
 });

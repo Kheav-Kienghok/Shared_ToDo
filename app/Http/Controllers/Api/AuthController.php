@@ -15,28 +15,21 @@ use Psr\Log\LoggerInterface;
 class AuthController extends Controller
 {
     protected LoggerInterface $logger;
-    protected User $user;
-    protected JWTAuth $jwt;
 
-    public function __construct(
-        LoggerInterface $logger,
-        User $user,
-        JWTAuth $jwt,
-    ) {
+    public function __construct(LoggerInterface $logger)
+    {
         $this->logger = $logger;
-        $this->user = $user;
-        $this->jwt = $jwt;
     }
 
     public function register(RegisterRequest $request): JsonResponse
     {
         # Create User
-        $user = $this->user->newQuery()->create($request->validated());
+        $user = User::create($request->validated());
 
         $this->logger->info("User registered", [
             "user_id" => $user->id,
             "email" => $user->email,
-            "ip" => $request->ip(),
+            "ip" => $request->ip() ?? "unknown",
         ]);
 
         return response()->json(
@@ -48,31 +41,44 @@ class AuthController extends Controller
         );
     }
 
-    public function login(LoginRequest $request): JsonResponse
+    public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
 
-        $user = $this->user
-            ->newQuery()
-            ->where("email", $credentials["email"])
-            ->first();
+        // Find user
+        $user = User::where("email", $credentials["email"])->first();
+        if (!$user) {
+            $this->logger->warning("Login failed: user not found", [
+                "email" => $credentials["email"],
+                "ip" => $request->ip() ?? "unknown",
+            ]);
 
-        $this->logger->info("Login attempt", [
-            "email" => $credentials["email"],
-            "ip" => $request->ip(),
+            return response()->json(
+                [
+                    "status" => "error",
+                    "error" => "Invalid credentials",
+                ],
+                401,
+            );
+        }
+
+        $this->logger->info('Login attempt', [
+            'email' => $credentials['email'],
+            'ip' => $request->ip() ?? 'unknown',
         ]);
 
         try {
-            $token = $this->jwt
-                ->Claims([
-                    "username" => $user->name,
-                ])
-                ->attempt($credentials);
+            $payload = [
+                'username' => $user->name,
+                'exp' => now()->addHours(24)->timestamp,
+            ];
+
+            $token = JWTAuth::attempt($credentials, $payload);
 
             if (!$token) {
                 $this->logger->warning("Login failed: invalid credentials", [
                     "email" => $credentials["email"],
-                    "ip" => $request->ip(),
+                    "ip" => $request->ip() ?? "unknown",
                 ]);
 
                 return response()->json(
@@ -86,7 +92,7 @@ class AuthController extends Controller
         } catch (JWTException $e) {
             $this->logger->error("Login failed: could not create token", [
                 "email" => $credentials["email"],
-                "ip" => $request->ip(),
+                "ip" => $request->ip() ?? "unknown",
                 "error" => $e->getMessage(),
             ]);
 
@@ -109,7 +115,7 @@ class AuthController extends Controller
         );
     }
 
-    public function logout(): JsonResponse
+    public function logout()
     {
         $user = auth()->user();
 
@@ -119,8 +125,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            // Use JWTAuth::parseToken()->invalidate() to invalidate the token
-            $this->jwt->parseToken()->invalidate();
+            JWTAuth::parseToken()->invalidate(); // to invalidate the token
         } catch (JWTException $e) {
             $this->logger->error("Logout failed: could not invalidate token", [
                 "user_id" => $user ? $user->id : null,
@@ -154,7 +159,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            $this->jwt->parseToken()->authenticate();
+            JWTAuth::parseToken()->authenticate();
         } catch (JWTException $e) {
             $this->logger->error("Profile access failed: invalid token", [
                 "user_id" => auth()->id(),
@@ -171,7 +176,7 @@ class AuthController extends Controller
             );
         }
 
-        $resource = (new UserResource(auth()->user()))->toArray(request());
+        $resource = UserResource::make(auth()->user());
         return response()->json([
             "status" => "success",
             "data" => $resource,
