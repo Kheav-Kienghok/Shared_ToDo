@@ -8,17 +8,19 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Psr\Log\LoggerInterface;
+use Tymon\JWTAuth\JWTAuth as JWTAuthService;
 
 class AuthController extends Controller
 {
     protected LoggerInterface $logger;
+    protected JWTAuthService $jwt;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, JWTAuthService $jwt)
     {
         $this->logger = $logger;
+        $this->jwt = $jwt;
     }
 
     public function register(RegisterRequest $request): JsonResponse
@@ -68,12 +70,14 @@ class AuthController extends Controller
         ]);
 
         try {
-            $payload = [
-                "username" => $user->name,
-                "exp" => now()->addHours(24)->timestamp,
-            ];
+            // Set token TTL (24 hours)
+            $this->jwt->factory()->setTTL(60 * 24);
 
-            $token = JWTAuth::attempt($credentials, $payload);
+            $token = $this->jwt
+                ->claims([
+                    'username' => $user->name,
+                ])
+                ->attempt($credentials);
 
             if (!$token) {
                 $this->logger->warning("Login failed: invalid credentials", [
@@ -125,7 +129,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            JWTAuth::parseToken()->invalidate(); // to invalidate the token
+            $this->jwt->parseToken()->invalidate(); // to invalidate the token
         } catch (JWTException $e) {
             $this->logger->error("Logout failed: could not invalidate token", [
                 "user_id" => $user ? $user->id : null,
@@ -159,7 +163,7 @@ class AuthController extends Controller
         ]);
 
         try {
-            JWTAuth::parseToken()->authenticate();
+            $this->jwt->parseToken()->authenticate();
         } catch (JWTException $e) {
             $this->logger->error("Profile access failed: invalid token", [
                 "user_id" => auth()->id(),

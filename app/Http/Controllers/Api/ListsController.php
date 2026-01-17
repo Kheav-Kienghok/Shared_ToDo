@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ListRequest;
 use App\Http\Resources\ListResource;
 use App\Models\Lists;
+use App\Models\ListUser;
 use Psr\Log\LoggerInterface;
+use Illuminate\Support\Facades\DB;
 
 class ListsController extends Controller
 {
@@ -42,20 +44,44 @@ class ListsController extends Controller
     public function store(ListRequest $request)
     {
         $data = $request->validated();
-        $data["owner_id"] = auth()->id();
+        $userId = auth()->id();
+        $data['owner_id'] = $userId;
 
         $this->logger->info("Creating new list", [
-            "user_id" => auth()->id() ?? "unknown",
+            "user_id" => $userId ?? "unknown",
             "ip" => $request->ip() ?? "unknown",
         ]);
 
-        $list = Lists::create($data);
+        try {
+            $list = DB::transaction(function () use ($data, $userId) {
+                // 1. Create the list
+                $list = Lists::create($data);
 
-        return response()->json([
-            "status" => "success",
-            "message" => "List created successfully",
-            "data" => new ListResource($list),
-        ]);
+                // 2. Attach the owner to the pivot table
+                $list->users()->syncWithoutDetaching([
+                    $userId => ['role' => ListUser::ROLE_OWNER]
+                ]);
+
+                return $list;
+            });
+
+            return response()->json([
+                "status" => "success",
+                "message" => "List created successfully",
+                "data" => new ListResource($list),
+            ]);
+        } catch (\Throwable $e) {
+            $this->logger->error("Failed to create list", [
+                "user_id" => $userId,
+                "ip" => $request->ip() ?? "unknown",
+                "error" => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                "status" => "error",
+                "error" => "Could not create list",
+            ], 500);
+        }
     }
 
     /**
@@ -103,6 +129,11 @@ class ListsController extends Controller
      */
     public function destroy(Lists $list)
     {
+        $this->logger->info("Deleting list", [
+            "user_id" => auth()->id() ?? "unknown",
+            "list_id" => $list->id,
+            "ip" => request()->ip() ?? "unknown",
+        ]);
 
         $list->delete();
 

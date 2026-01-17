@@ -3,13 +3,24 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Tymon\JWTAuth\Facades\JWTAuth;
+use Psr\Log\LoggerInterface;
 use Illuminate\Http\Request;
 use Exception;
 use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\JWTAuth as JWTAuthService;
 
 class JwtMiddleware
 {
+    protected LoggerInterface $logger;
+    protected JWTAuthService $jwt;
+
+    public function __construct(LoggerInterface $logger, JWTAuthService $jwt)
+    {
+        $this->logger = $logger;
+        $this->jwt = $jwt;
+    }
+
     /**
      * Handle an incoming request.
      *
@@ -19,8 +30,15 @@ class JwtMiddleware
     {
 
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            $user = $this->jwt->parseToken()->authenticate();
+        } catch (JWTException $e) {
+            $this->logger->error('JWT Authentication failed', ['exception' => $e]);
+            return response()->json([
+                'status' => 'error',
+                'error' => 'Unauthorized'
+            ], 401);
         } catch (Exception $e) {
+            $this->logger->error('Unexpected error during JWT Authentication', ['exception' => $e]);
             return response()->json([
                 'status' => 'error',
                 'error' => 'Unauthorized'

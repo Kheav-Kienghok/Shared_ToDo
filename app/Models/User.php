@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
@@ -42,5 +44,27 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims(): array
     {
         return [];
+    }
+
+    // Relationships
+
+    // Lists owned by the user
+    public function listsOwned(): HasMany
+    {
+        return $this->hasMany(Lists::class, 'owner_id');
+    }
+
+    // Lists where the user is a collaborator or viewer
+    public function lists(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Lists::class,
+            'list_users',
+            'user_id', // ✅ correct
+            'list_id'  // ✅ correct
+        )
+            ->using(ListUser::class)
+            ->withPivot('role')
+            ->withTimestamps();
     }
 }
