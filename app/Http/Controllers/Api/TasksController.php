@@ -5,23 +5,30 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\TaskRequest;
 use App\Http\Resources\TaskResource;
-use App\Models\Task;
+use App\Models\Tasks;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
+use Psr\Log\LoggerInterface;
 
 class TasksController extends Controller
 {
+    protected LoggerInterface $logger;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(): JsonResponse
     {
-        Log::info("Fetching all tasks", [
+        $this->logger->info("Fetching all tasks", [
             "user_id" => auth()->id(),
             "ip" => request()->ip(),
         ]);
 
-        $tasks = Task::all();
+        $tasks = Tasks::all();
 
         return response()->json([
             "status" => "success",
@@ -34,7 +41,7 @@ class TasksController extends Controller
      */
     public function store(TaskRequest $request): JsonResponse
     {
-        $task = Task::create($request->validated());
+        $task = Tasks::create($request->validated());
 
         return response()->json(
             [
@@ -51,7 +58,7 @@ class TasksController extends Controller
      */
     public function show(string $id): JsonResponse
     {
-        $task = Task::findOrFail($id);
+        $task = Tasks::findOrFail($id);
 
         return response()->json([
             "status" => "success",
@@ -64,23 +71,22 @@ class TasksController extends Controller
      */
     public function update(TaskRequest $request, string $id)
     {
-        $data = $request->validated();
-
-        // If no fields were provided, do nothing
-        if (empty($data)) {
+        if (empty($request->all())) {
             return response()->json([
                 "status" => "success",
-                "message" => "No changes made to the task",
+                "message" => "No data change was found",
             ]);
         }
 
-        $task = Task::findOrFail($id);
+        $data = $request->safe()->only(array_keys($request->rules()));
+        $task = Tasks::findOrFail($id);
 
         $task->update($data);
 
         return response()->json([
             "status" => "success",
             "message" => "Task updated successfully",
+            "data" => TaskResource::make($task),
         ]);
     }
 
@@ -89,7 +95,7 @@ class TasksController extends Controller
      */
     public function destroy(string $id): JsonResponse
     {
-        $task = Task::findOrFail($id);
+        $task = Tasks::findOrFail($id);
         $task->delete();
 
         return response()->json([

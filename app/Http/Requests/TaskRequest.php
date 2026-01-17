@@ -82,16 +82,4 @@ class TaskRequest extends FormRequest
             ]);
         }
     }
-
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            if (empty($this->validated())) {
-                $validator->errors()->add(
-                    'request',
-                    'At least one field must be provided for update.'
-                );
-            }
-        });
-    }
 }

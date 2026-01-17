@@ -62,15 +62,15 @@ class AuthController extends Controller
             );
         }
 
-        $this->logger->info('Login attempt', [
-            'email' => $credentials['email'],
-            'ip' => $request->ip() ?? 'unknown',
+        $this->logger->info("Login attempt", [
+            "email" => $credentials["email"],
+            "ip" => $request->ip() ?? "unknown",
         ]);
 
         try {
             $payload = [
-                'username' => $user->name,
-                'exp' => now()->addHours(24)->timestamp,
+                "username" => $user->name,
+                "exp" => now()->addHours(24)->timestamp,
             ];
 
             $token = JWTAuth::attempt($credentials, $payload);
