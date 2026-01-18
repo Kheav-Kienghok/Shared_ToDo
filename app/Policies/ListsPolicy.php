@@ -7,6 +7,9 @@ use App\Models\User;
 
 class ListsPolicy
 {
+    /**
+     * Can view any lists? (e.g., list all lists)
+     */
     public function viewAny(User $user): bool
     {
         return true; // user can list their own resources
@@ -17,7 +20,8 @@ class ListsPolicy
      */
     public function view(User $user, Lists $list): bool
     {
-        return $user->id === $list->owner_id;
+        $role = $this->getUserRole($user, $list);
+        return in_array($role, ['owner', 'collaborator', 'viewer']);
     }
 
     /**
@@ -33,7 +37,8 @@ class ListsPolicy
      */
     public function update(User $user, Lists $list): bool
     {
-        return $user->id === $list->owner_id;
+        $role = $this->getUserRole($user, $list);
+        return in_array($role, ['owner', 'editor']);
     }
 
     /**
@@ -41,22 +46,22 @@ class ListsPolicy
      */
     public function delete(User $user, Lists $list): bool
     {
-        return $user->id === $list->owner_id;
+        return $this->getUserRole($user, $list) === 'owner';
     }
 
     /**
-     * Determine whether the user can restore the model.
+     * Can share the list / manage users? (only owner)
      */
-    public function restore(User $user, Lists $list): bool
+    public function share(User $user, Lists $list): bool
     {
-        return $user->id === $list->owner_id;
+        return $this->getUserRole($user, $list) === 'owner';
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Lists $list): bool
+    protected function getUserRole(User $user, Lists $list): ?string
     {
-        return $user->id === $list->owner_id;
+        return $list->users()
+            ->where('user_id', $user->id)
+            ->first()?->pivot->role;
     }
+
 }
