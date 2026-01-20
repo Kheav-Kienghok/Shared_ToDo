@@ -12,6 +12,7 @@ use App\Models\ListUser;
 use App\Models\User;
 use Psr\Log\LoggerInterface;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class ListsController extends Controller
 {
@@ -34,6 +35,10 @@ class ListsController extends Controller
                 return new ListResource($list);
             });
 
+        $this->logger->info("Retrieved lists for user {user_id}", [
+            "user_id" => auth()->id() ?? "unknown",
+        ]);
+
         return response()->json([
             "status" => "success",
             "message" => "Lists retrieved successfully",
@@ -48,12 +53,9 @@ class ListsController extends Controller
     {
         $data = $request->validated();
         $userId = auth()->id();
-        $data['owner_id'] = $userId;
+        $data["owner_id"] = $userId;
 
-        $this->logger->info("Creating new list", [
-            "user_id" => $userId ?? "unknown",
-            "ip" => $request->ip() ?? "unknown",
-        ]);
+        $this->logger->debug("List data", ["data" => $data]);
 
         try {
             $list = DB::transaction(function () use ($data, $userId) {
@@ -62,8 +64,10 @@ class ListsController extends Controller
 
                 // 2. Attach the owner to the pivot table
                 $list->users()->syncWithoutDetaching([
-                    $userId => ['role' => ListUser::ROLE_OWNER]
+                    $userId => ["role" => ListUser::ROLE_OWNER],
                 ]);
+
+                $this->logger->info("List created with ID {$list->id} by user {$userId}");
 
                 return $list;
             });
@@ -73,17 +77,17 @@ class ListsController extends Controller
                 "message" => "List created successfully",
                 "data" => new ListResource($list),
             ]);
-        } catch (\Throwable $e) {
-            $this->logger->error("Failed to create list", [
-                "user_id" => $userId,
-                "ip" => $request->ip() ?? "unknown",
-                "error" => $e->getMessage(),
-            ]);
+        } catch (Throwable $e) {
 
-            return response()->json([
-                "status" => "error",
-                "error" => "Could not create list",
-            ], 500);
+            $this->logger->error("List creation failed: " . $e->getMessage());
+
+            return response()->json(
+                [
+                    "status" => "error",
+                    "error" => "Could not create list",
+                ],
+                500,
+            );
         }
     }
 
@@ -92,6 +96,8 @@ class ListsController extends Controller
      */
     public function show(Lists $list)
     {
+        $this->logger->info("Retrieving list for list_id={$list->id} and data {$list->toArray()}");
+
         return response()->json([
             "status" => "success",
             "data" => new ListResource($list),
@@ -103,11 +109,7 @@ class ListsController extends Controller
      */
     public function update(ListRequest $request, Lists $list)
     {
-        $this->logger->info("Updating list", [
-            "user_id" => auth()->id() ?? "unknown",
-            "list_id" => $list->id,
-            "ip" => $request->ip() ?? "unknown",
-        ]);
+        $this->logger->info("Updating the list list_id={$list->id} with data {$request->all()}");
 
         if (empty($request->all())) {
             return response()->json([
@@ -119,6 +121,8 @@ class ListsController extends Controller
         $data = $request->validated();
 
         $list->update($data);
+
+        $this->logger->info("List updated successfully list_id={$list->id}");
 
         return response()->json([
             "status" => "success",
@@ -132,11 +136,7 @@ class ListsController extends Controller
      */
     public function destroy(Lists $list)
     {
-        $this->logger->info("Deleting list", [
-            "user_id" => auth()->id() ?? "unknown",
-            "list_id" => $list->id,
-            "ip" => request()->ip() ?? "unknown",
-        ]);
+        $this->logger->info("Deleting the list list_id={$list->id}");
 
         $list->delete();
 
@@ -151,58 +151,66 @@ class ListsController extends Controller
      */
     public function share(ShareListRequest $request, Lists $list)
     {
-        $this->authorize('share', $list);
+        $this->authorize("share", $list);
 
-        $userId = $request->input('user_id');
-        $role = $request->input('role');
+        $userId = $request->input("user_id");
+        $role = $request->input("role");
 
         $user = User::findOrFail($userId);
 
         $result = $this->attachOrUpdateUserRole($list, $user, $role);
 
-        if ($result['action'] === 'owner') {
+        $this->logger->info("Shared list_id={$list->id} with user_id={$userId} as role={$role}");
+
+        if ($result["action"] === "owner") {
             return response()->json([
-                'status' => 'success',
-                'message' => "User {$result['user_name']} is the owner and their role cannot be changed",
-                'data' => $result,
+                "status" => "success",
+                "message" => "User {$result["user_name"]} is the owner and their role cannot be changed",
+                "data" => $result,
             ]);
         }
 
         return response()->json([
-            'status' => 'success',
-            'message' => "User {$result['user_name']} {$result['action']} as {$result['role']}",
-            'data' => $result,
+            "status" => "success",
+            "message" => "User {$result["user_name"]} {$result["action"]} as {$result["role"]}",
+            "data" => $result,
         ]);
     }
 
     /**
      * Update a user's role on a list
      */
-    public function updateUserRole(UpdateUserRoleRequest $request, Lists $list, User $user)
-    {
-        $this->authorize('share', $list);
+    public function updateUserRole(
+        UpdateUserRoleRequest $request,
+        Lists $list,
+        User $user,
+    ) {
+        $this->authorize("share", $list);
 
-        $role = $request->input('role');
+        $role = $request->input("role");
 
         $result = $this->attachOrUpdateUserRole($list, $user, $role);
 
-        if ($result['action'] === 'owner') {
+        $this->logger->info("Updated user_id={$user->id} role to {$role} on list_id={$list->id}");
+
+        if ($result["action"] === "owner") {
             return response()->json([
-                'status' => 'success',
-                'message' => "User {$result['user_name']} is the owner and their role cannot be changed",
-                'data' => $result,
+                "status" => "success",
+                "message" => "User {$result["user_name"]} is the owner and their role cannot be changed",
+                "data" => $result,
             ]);
         }
 
-        $status = $result['action'] === 'added' ? 'warning' : 'success';
-        $message = $result['action'] === 'added'
-            ? "User {$result['user_name']} was not on the list and has been added as {$role}"
-            : "User {$result['user_name']}'s role updated to {$role}";
+        $status = $result["action"] === "added" ? "warning" : "success";
+        $message =
+            $result["action"] === "added"
+            ? "User {$result["user_name"]} was not on the list and has been added as {$role}"
+            : "User {$result["user_name"]}'s role updated to {$role}";
 
         return response()->json([
-            'status' => $status,
-            'message' => $message,
-            'data' => $result,
+            "status" => $status,
+            "message" => $message,
+            "data" => $result,
         ]);
     }
 
@@ -212,62 +220,77 @@ class ListsController extends Controller
     public function removeUser(Lists $list, User $user)
     {
         // Policy check: only owner can remove users
-        $this->authorize('share', $list);
+        $this->authorize("share", $list);
 
         // Check if user is attached to the list
-        $pivot = $list->users()->where('user_id', $user->id)->first();
+        $pivot = $list->users()->where("user_id", $user->id)->first();
 
         if (!$pivot) {
-            return response()->json([
-                'status' => 'error',
-                'message' => "User {$user->name} is not part of this list",
-            ], 404);
+            return response()->json(
+                [
+                    "status" => "error",
+                    "message" => "User {$user->name} is not part of this list",
+                ],
+                404,
+            );
         }
 
         // Optional: get role before removing
         $role = $pivot->pivot->role;
 
+        $this->logger->info("Removing user_id={$user->id} with role={$role} from list_id={$list->id}");
+
         // Remove user
         $list->users()->detach($user->id);
 
         return response()->json([
-            'status' => 'success',
-            'message' => "User {$user->name} with role '{$role}' removed from the list",
+            "status" => "success",
+            "message" => "User {$user->name} with role '{$role}' removed from the list",
         ]);
     }
-
 
     /**
      * Attach or update a user on a list with a specific role
      */
-    protected function attachOrUpdateUserRole(Lists $list, User $user, string $role): array
-    {
-        $pivot = $list->users()->where('user_id', $user->id)->first();
+    protected function attachOrUpdateUserRole(
+        Lists $list,
+        User $user,
+        string $role,
+    ): array {
+        $pivot = $list->users()->where("user_id", $user->id)->first();
 
         // Prevent changing owner's role
         if ($pivot && $pivot->pivot->role === ListUser::ROLE_OWNER) {
             return [
-                'user_id' => $user->id,
-                'user_name' => $user->name,
-                'role' => ListUser::ROLE_OWNER,
-                'action' => 'owner', // special action
+                "user_id" => $user->id,
+                "user_name" => $user->name,
+                "role" => ListUser::ROLE_OWNER,
+                "action" => "owner", // special action
             ];
         }
 
         if ($pivot) {
-            $list->users()->updateExistingPivot($user->id, ['role' => $role]);
-            $action = 'updated';
+            $list->users()->updateExistingPivot($user->id, ["role" => $role]);
+            $action = "updated";
         } else {
-            $list->users()->syncWithoutDetaching([$user->id => ['role' => $role]]);
-            $action = 'added';
+            $list
+                ->users()
+                ->syncWithoutDetaching([$user->id => ["role" => $role]]);
+            $action = "added";
         }
 
+        $this->logger->info("User role attach/updateed", [
+            "list_id" => $list->id,
+            "user_id" => $user->id,
+            "role" => $role,
+            "action" => $action,
+        ]);
+
         return [
-            'user_id' => $user->id,
-            'user_name' => $user->name,
-            'role' => $role,
-            'action' => $action,
+            "user_id" => $user->id,
+            "user_name" => $user->name,
+            "role" => $role,
+            "action" => $action,
         ];
     }
-
 }

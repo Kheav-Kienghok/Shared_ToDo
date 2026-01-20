@@ -1,0 +1,30 @@
+# Node / npm / frontend stuff if you build outside Docker
+node_modules
+npm-debug.log
+yarn-error.log
+public/build
+
+# Composer stuff you don’t want in build context
+vendor
+
+# IDE / OS files
+.idea
+.vscode
+.DS_Store
+*.swp
+
+# Git
+.git
+.gitignore
+
+# Environment / secrets
+.env
+.env.local
+.env.*.backup
+
+# Storage and cache (Laravel runtime)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+bootstrap/cache/*

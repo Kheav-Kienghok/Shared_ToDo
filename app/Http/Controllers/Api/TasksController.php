@@ -23,12 +23,11 @@ class TasksController extends Controller
      */
     public function index(): JsonResponse
     {
-        $this->logger->info("Fetching all tasks", [
-            "user_id" => auth()->id(),
-            "ip" => request()->ip(),
-        ]);
+        $this->logger->debug("Debugging info: Fetching tasks at " . now());
 
         $tasks = Tasks::all();
+
+        $this->logger->info("Fetched all tasks", ['task_count' => $tasks->count()]);
 
         return response()->json([
             "status" => "success",
@@ -42,6 +41,8 @@ class TasksController extends Controller
     public function store(TaskRequest $request): JsonResponse
     {
         $task = Tasks::create($request->validated());
+
+        $this->logger->info("Created new task", ['task_id' => $task->id]);
 
         return response()->json(
             [
@@ -69,7 +70,7 @@ class TasksController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(TaskRequest $request, string $id)
+    public function update(TaskRequest $request, string $id): JsonResponse
     {
         if (empty($request->all())) {
             return response()->json([
@@ -82,6 +83,8 @@ class TasksController extends Controller
         $task = Tasks::findOrFail($id);
 
         $task->update($data);
+
+        $this->logger->info("Updated task", ['task_id' => $task->id]);
 
         return response()->json([
             "status" => "success",
@@ -97,6 +100,8 @@ class TasksController extends Controller
     {
         $task = Tasks::findOrFail($id);
         $task->delete();
+
+        $this->logger->info("Deleted task", ['task_id' => $id]);
 
         return response()->json([
             "status" => "success",

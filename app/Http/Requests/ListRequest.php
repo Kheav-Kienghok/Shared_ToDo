@@ -22,34 +22,36 @@ class ListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'description' => ['sometimes', 'nullable', 'string'],
-            'is_achieved' => ['sometimes', 'boolean'],
+            "name" => ["sometimes", "required", "string", "max:255"],
+            "description" => ["sometimes", "nullable", "string"],
+            "is_achieved" => ["sometimes", "boolean"],
         ];
     }
 
     public function messages(): array
     {
-        if ($this->isMethod('post')) {
+        if ($this->isMethod("post")) {
             return [
-                'name' => ['required', 'string', 'max:255'], // must be present
-                'description' => ['nullable', 'string'],
-                'is_achieved' => ['sometimes', 'boolean'],
+                "name" => ["required", "string", "max:255"], // must be present
+                "description" => ["nullable", "string"],
+                "is_achieved" => ["sometimes", "boolean"],
             ];
         }
 
         // For update (PATCH/PUT)
         return [
-            'name' => ['sometimes', 'string', 'max:255'], // optional on update
-            'description' => ['sometimes', 'nullable', 'string'],
-            'is_achieved' => ['sometimes', 'boolean'],
+            "name" => ["sometimes", "string", "max:255"], // optional on update
+            "description" => ["sometimes", "nullable", "string"],
+            "is_achieved" => ["sometimes", "boolean"],
         ];
     }
 
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'is_achieved' => $this->has('is_achieved') ? $this->boolean('is_achieved') : false,
+            "is_achieved" => $this->has("is_achieved")
+                ? $this->boolean("is_achieved")
+                : false,
         ]);
     }
 }

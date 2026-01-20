@@ -21,7 +21,7 @@ class ListsPolicy
     public function view(User $user, Lists $list): bool
     {
         $role = $this->getUserRole($user, $list);
-        return in_array($role, ['owner', 'collaborator', 'viewer']);
+        return in_array($role, ["owner", "collaborator", "viewer"]);
     }
 
     /**
@@ -38,7 +38,7 @@ class ListsPolicy
     public function update(User $user, Lists $list): bool
     {
         $role = $this->getUserRole($user, $list);
-        return in_array($role, ['owner', 'editor']);
+        return in_array($role, ["owner", "editor"]);
     }
 
     /**
@@ -46,7 +46,7 @@ class ListsPolicy
      */
     public function delete(User $user, Lists $list): bool
     {
-        return $this->getUserRole($user, $list) === 'owner';
+        return $this->getUserRole($user, $list) === "owner";
     }
 
     /**
@@ -54,14 +54,14 @@ class ListsPolicy
      */
     public function share(User $user, Lists $list): bool
     {
-        return $this->getUserRole($user, $list) === 'owner';
+        return $this->getUserRole($user, $list) === "owner";
     }
 
     protected function getUserRole(User $user, Lists $list): ?string
     {
-        return $list->users()
-            ->where('user_id', $user->id)
+        return $list
+            ->users()
+            ->where("user_id", $user->id)
             ->first()?->pivot->role;
     }
-
 }

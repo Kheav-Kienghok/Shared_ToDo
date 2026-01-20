@@ -43,12 +43,7 @@ class CheckListRole
             ], 404);
         }
 
-        $this->logger->info('Checking list role', [
-            'user_id' => $user->id,
-            'list_id' => $list->id,
-            'required_roles' => $roles,
-            'ip' => $request->ip(),
-        ]);
+        $this->logger->debug("User roles on list: " . implode(',', $list->users()->where('users.id', $user->id)->pluck('role')->toArray()));
 
         $userOnList = $list->users()
             ->where('users.id', $user->id)
