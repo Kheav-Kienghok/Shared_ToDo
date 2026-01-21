@@ -20,6 +20,8 @@ return new class extends Migration {
             $table->timestamp('due_date')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('reminder_at')->nullable();
+            $table->foreignId('list_id')->constrained('lists')->onDelete('cascade');
+            $table->foreignId('created_by')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

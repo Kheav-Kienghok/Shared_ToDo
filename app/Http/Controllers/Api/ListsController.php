@@ -96,7 +96,10 @@ class ListsController extends Controller
      */
     public function show(Lists $list)
     {
-        $this->logger->info("Retrieving list for list_id={$list->id} and data {$list->toArray()}");
+        $this->logger->info(
+            "Retrieving list for list_id={$list->id}",
+            ['list_data' => $list->toArray()]
+        );
 
         return response()->json([
             "status" => "success",
@@ -183,11 +186,13 @@ class ListsController extends Controller
     public function updateUserRole(
         UpdateUserRoleRequest $request,
         Lists $list,
-        User $user,
     ) {
         $this->authorize("share", $list);
 
+        $userId = $request->input("user_id");
         $role = $request->input("role");
+
+        $user = User::findOrFail($userId);
 
         $result = $this->attachOrUpdateUserRole($list, $user, $role);
 
@@ -217,10 +222,14 @@ class ListsController extends Controller
     /**
      * Remove a user from a list
      */
-    public function removeUser(Lists $list, User $user)
+    public function removeUser(Lists $list)
     {
         // Policy check: only owner can remove users
         $this->authorize("share", $list);
+
+        $userId = request()->input("user_id");
+
+        $user = User::findOrFail($userId);
 
         // Check if user is attached to the list
         $pivot = $list->users()->where("user_id", $user->id)->first();

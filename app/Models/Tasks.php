@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Tasks extends Model
 {
@@ -16,6 +17,8 @@ class Tasks extends Model
         'due_date',
         'completed_at',
         'reminder_at',
+        'list_id',
+        'created_by',
     ];
 
     protected $casts = [
@@ -23,4 +26,28 @@ class Tasks extends Model
         'completed_at' => 'datetime:Y-m-d H:i:s',
         'reminder_at' => 'datetime:Y-m-d H:i:s',
     ];
+
+    /**
+     * The list this task belongs to
+     */
+    public function list(): BelongsTo
+    {
+        return $this->belongsTo(Lists::class, 'list_id');
+    }
+
+    /**
+     * The user this task is assigned to
+     */
+    public function assignedUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /**
+     * The user who created this task
+     */
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

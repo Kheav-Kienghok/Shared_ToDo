@@ -40,7 +40,6 @@ class TaskRequest extends FormRequest
             'status' => 'sometimes|in:pending,in_progress,completed',
             'priority' => 'sometimes|integer|min:0|max:5',
             'description' => 'sometimes|nullable|string',
-            'assigned_to' => 'sometimes|nullable|integer|exists:users,id',
             'due_date' => 'sometimes|nullable|date',
             'completed_at' => 'sometimes|nullable|date',
             'reminder_at' => 'sometimes|nullable|date',

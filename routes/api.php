@@ -23,29 +23,70 @@ Route::prefix("auth")->group(function () {
  * @Scramble\SecurityScheme(name="jwt")
  */
 Route::middleware("jwt")->group(function () {
-    // List Sharing & Permissions (most specific first)
-    Route::middleware("check.list.role:owner")->group(function () {
-        Route::post("lists/{list}/share", [ListsController::class, "share"]);
-        Route::patch("lists/{list}/users/{user}", [
-            ListsController::class,
-            "updateUserRole",
-        ]);
-        Route::delete("lists/{list}/users/{user}", [
-            ListsController::class,
-            "removeUser",
-        ]);
-    });
 
-    // Editors can update lists
+    /*
+    |--------------------------------------------------------------------------
+    | Lists Core
+    |--------------------------------------------------------------------------
+    */
+    Route::apiResource("lists", ListsController::class)->except(["update", "show"]);
+
+    Route::get("lists/{list}", [ListsController::class, "show"]);
+
+    // Editors + Owners can update list
     Route::middleware("check.list.role:owner,editor")->group(function () {
         Route::patch("lists/{list}", [ListsController::class, "update"]);
     });
 
-    // Lists resource (less specific)
-    Route::apiResource("lists", ListsController::class)->except(["update"]);
-    Route::apiResource("tasks", TasksController::class);
-    Route::get("lists/{list}", [ListsController::class, "show"]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | List Sharing & Permissions (Owner only)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware("check.list.role:owner")->group(function () {
+
+        // Share list with new user
+        Route::post("lists/{list}/share", [ListsController::class, "share"]);
+
+        // Update user role in list (user_id in body)
+        Route::patch("lists/{list}/users", [ListsController::class, "updateUserRole"]);
+
+        // Remove user from list (user_id in body)
+        Route::delete("lists/{list}/users", [ListsController::class, "removeUser"]);
+    });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Tasks under Lists
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware("check.list.role:owner,editor,viewer")->group(function () {
+
+        // List + filter tasks
+        Route::get("lists/{list}/tasks", [TasksController::class, "index"]);
+
+        // Show single task (important — prevents cross-list leaks)
+        Route::get("lists/{list}/tasks/{task}", [TasksController::class, "show"]);
+
+        // Create task
+        Route::post("lists/{list}/tasks", [TasksController::class, "store"]);
+    });
+
+    
+    /*
+    |--------------------------------------------------------------------------
+    | Tasks Direct Actions
+    |--------------------------------------------------------------------------
+    */
+    Route::patch("tasks/{task}", [TasksController::class, "update"]);
+    Route::delete("tasks/{task}", [TasksController::class, "destroy"]);
+
+    Route::post("tasks/{task}/complete", [TasksController::class, "markAsCompleted"]);
+    Route::post("tasks/{task}/assign", [TasksController::class, "assignedToUser"]);
 });
+
 
 /*
 |--------------------------------------------------------------------------

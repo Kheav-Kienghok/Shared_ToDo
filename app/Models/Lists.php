@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Lists extends Model
 {
@@ -39,5 +40,13 @@ class Lists extends Model
             ->using(ListUser::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    /**
+     * Tasks that belong to this list
+     */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Tasks::class, 'list_id');
     }
 }

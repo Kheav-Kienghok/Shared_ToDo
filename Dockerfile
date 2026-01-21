@@ -25,4 +25,3 @@ EXPOSE 8000
 
 # === Default command ===
 CMD ["php", "artisan", "octane:start", "--watch", "--host=0.0.0.0"]
-

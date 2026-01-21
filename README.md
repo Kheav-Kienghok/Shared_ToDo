@@ -97,6 +97,48 @@ Let other users access your lists and control what they can do.
 
 ---
 
+## 4. Tasks
+
+**What it does:**  
+Manage tasks under each list — create, view, update, complete, or assign them.
+
+### Database Table: `tasks`
+
+| Column       | What it stores                            |
+|------------- |-----------------------------------------  |
+| id           | Unique ID for the task                    |
+| list_id      | ID of the list this task belongs to       |
+| title        | Title of the task                         |
+| description  | Optional description                      |
+| assigned_to  | User ID of the person assigned            |
+| status       | Status: todo, in_progress, done           |
+| priority     | Priority number (e.g., 1 = highest)       |
+| due_date     | When the task is due                      |
+| completed_at | Timestamp when task was completed         |
+| reminder_at  | Optional reminder timestamp               |
+| created_by   | User ID who created the task              |
+| created_at   | When the task was created                 |
+| updated_at   | Last update timestamp                     |
+
+### API Endpoints
+
+| Method | Endpoint                       | What it does                                                           |
+|--------|--------------------------------|------------------------------------------------                        |
+| POST   | /lists/{list_id}/tasks         | Create a new task under a list                                         |
+| GET    | /lists/{list_id}/tasks         | Get all tasks for a list (with optional filters: status, due, overdue) |
+| PATCH  | /tasks/{task_id}               | Update a task’s details                                                |
+| DELETE | /tasks/{task_id}               | Delete a task                                                          |
+| POST   | /tasks/{task_id}/complete      | Mark a task as completed                                               |
+| POST   | /tasks/{task_id}/assign        | Assign a task to a user                                                |
+
+### Example Query Filters
+
+- `GET /tasks?status=todo` → Get all tasks with status “todo”  
+- `GET /tasks?due=today` → Get tasks due today  
+- `GET /tasks?overdue=true` → Get overdue tasks (status not done)
+
+---
+
 ## Quick Summary for Beginners
 
 1. **Users table** → manages user accounts  
