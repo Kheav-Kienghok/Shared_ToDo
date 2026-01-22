@@ -1,27 +1,67 @@
-# === Base image ===
-FROM dunglas/frankenphp
+FROM php:8.4.17-cli-alpine
 
-# === Set working directory ===
 WORKDIR /var/www/html
 
-# === System dependencies ===
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends unzip git libpq-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# -------------------------
+# System + build dependencies (Alpine)
+# -------------------------
+RUN apk add --no-cache \
+    git \
+    unzip \
+    curl \
+    openssl-dev \
+    zlib-dev \
+    postgresql-dev \
+    brotli-dev \
+    pkgconf \
+    autoconf \
+    g++ \
+    make
 
-# === Install PHP extensions needed by Laravel ===
-RUN install-php-extensions pcntl pdo_pgsql
+# -------------------------
+# PHP core extensions
+# -------------------------
+RUN docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    pcntl
 
-# === Copy project files ===
+# -------------------------
+# Install Swoole (auto-picks correct version for PHP 8.5)
+# -------------------------
+RUN pecl install swoole \
+    && docker-php-ext-enable swoole
+
+# -------------------------
+# Verify extension
+# -------------------------
+RUN php -m | grep swoole
+
+# -------------------------
+# Copy app
+# -------------------------
 COPY . .
 
-# === Install Composer dependencies ===
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
-    && composer install --no-dev --optimize-autoloader --no-interaction
+# -------------------------
+# Install Composer
+# -------------------------
+RUN curl -sS https://getcomposer.org/installer \
+    | php -- --install-dir=/usr/local/bin --filename=composer
 
-# === Expose port for Octane ===
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# -------------------------
+# Permissions
+# -------------------------
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# -------------------------
+# Expose Port
+# -------------------------
+ENV PORT=8000
 EXPOSE 8000
 
-# === Default command ===
-CMD ["php", "artisan", "octane:start", "--watch", "--host=0.0.0.0"]
+# -------------------------
+# Start Laravel Octane with Swoole
+# -------------------------
+CMD ["php", "artisan", "octane:start", "--server=swoole", "--host=0.0.0.0", "--port=8000"]
