@@ -24,6 +24,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Scramble::configure()
             ->withDocumentTransformers(function (OpenApi $openApi) {
+
+                // Keep bearer auth
                 $openApi->secure(
                     SecurityScheme::http('bearer')
                 );

@@ -2,11 +2,14 @@
 
 **Stack:** Laravel (API-only) · PostgreSQL · Redis  
 **Base URL:** `http://localhost:8000/api`  
-**API Docs:** `http://localhost:8000/docs/api`  
+**API Docs (Local):** [http://localhost:8000/docs/api](http://localhost:8000/docs/api)  
+**API Docs (Production):** [https://shared-todo-v1-0.onrender.com/docs/api](https://shared-todo-v1-0.onrender.com/docs/api)
 
-> This is a simple guide to understand the backend quickly.
+> This is a simple guide to quickly understand the backend and how to interact with it.
 
 ---
+
+  **Note:** The production server may take a few seconds to spin up. To test endpoints in the API docs, switch the server from **Live (http)** to **Prod (https)** for proper HTTPS requests.
 
 ## Database Diagram
 

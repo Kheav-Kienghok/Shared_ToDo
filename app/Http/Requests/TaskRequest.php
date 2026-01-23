@@ -24,25 +24,26 @@ class TaskRequest extends FormRequest
         if ($this->isMethod('post')) {
             return [
                 'title' => 'required|string|max:255',
+                'description' => 'nullable|string',
                 'status' => 'required|in:pending,in_progress,completed',
                 'priority' => 'required|integer|min:0|max:5',
-                'description' => 'nullable|string',
-                'assigned_to' => 'nullable|integer|exists:users,id',
                 'due_date' => 'nullable|date',
                 'completed_at' => 'nullable|date',
                 'reminder_at' => 'nullable|date',
+                // 'assigned_to' => 'nullable|integer|exists:users,id',
             ];
         }
 
         // PUT / PATCH (update)
         return [
             'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
             'status' => 'sometimes|in:pending,in_progress,completed',
             'priority' => 'sometimes|integer|min:0|max:5',
-            'description' => 'sometimes|nullable|string',
             'due_date' => 'sometimes|nullable|date',
             'completed_at' => 'sometimes|nullable|date',
             'reminder_at' => 'sometimes|nullable|date',
+            // 'assigned_to' => 'sometimes|nullable|integer|exists:users,id',
         ];
     }
 
@@ -54,8 +55,6 @@ class TaskRequest extends FormRequest
             'title.string' => 'The task title must be a string.',
             'title.max' => 'The task title may not be greater than 255 characters.',
             'description.string' => 'The task description must be a string.',
-            'assigned_to.integer' => 'The assigned to field must be an integer.',
-            'assigned_to.exists' => 'The selected user does not exist.',
             'status.required' => 'The task status is required.',
             'status.string' => 'The task status must be a string.',
             'status.in' => 'The task status must be one of the following: pending, in_progress, completed.',
@@ -66,6 +65,8 @@ class TaskRequest extends FormRequest
             'due_date.date' => 'The due date is not a valid date.',
             'completed_at.date' => 'The completed at is not a valid date.',
             'reminder_at.date' => 'The reminder at is not a valid date.',
+            // 'assigned_to.integer' => 'The assigned to field must be an integer.',
+            // 'assigned_to.exists' => 'The selected user does not exist.',
         ];
     }
 
@@ -76,9 +77,11 @@ class TaskRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         if ($this->status === 'completed' && !$this->completed_at) {
-            $this->merge([
-                'completed_at' => now(),
-            ]);
+            $this->merge(['completed_at' => now()]);
+        }
+
+        if ($this->status !== 'completed') {
+            $this->merge(['completed_at' => null]);
         }
     }
 }

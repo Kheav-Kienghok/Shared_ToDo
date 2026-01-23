@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\CheckListRole;
+use App\Http\Middleware\Cors;
 use App\Http\Middleware\JwtMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+
+        $middleware->prepend(Cors::class);
+
         $middleware->alias([
             'jwt' => JwtMiddleware::class,
             'check.list.role' => CheckListRole::class,

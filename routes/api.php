@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\ListsController;
+use App\Http\Controllers\Api\TaskCommentsController;
 use App\Http\Controllers\Api\TasksController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
@@ -74,7 +75,7 @@ Route::middleware("jwt")->group(function () {
         Route::post("lists/{list}/tasks", [TasksController::class, "store"]);
     });
 
-    
+
     /*
     |--------------------------------------------------------------------------
     | Tasks Direct Actions
@@ -85,6 +86,16 @@ Route::middleware("jwt")->group(function () {
 
     Route::post("tasks/{task}/complete", [TasksController::class, "markAsCompleted"]);
     Route::post("tasks/{task}/assign", [TasksController::class, "assignedToUser"]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Task Comments
+    |--------------------------------------------------------------------------
+    */
+    Route::get("tasks/{task}/comments", [TaskCommentsController::class, "index"]);
+    Route::post("tasks/{task}/comments", [TaskCommentsController::class, "store"]);
+    Route::delete("comments/{comment}", [TaskCommentsController::class, "destroy"]);
 });
 
 

@@ -27,14 +27,10 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "ok"
-                                            ]
+                                            "enum": ["ok"]
                                         }
                                     },
-                                    "required": [
-                                        "status"
-                                    ]
+                                    "required": ["status"]
                                 }
                             }
                         }
@@ -64,21 +60,14 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "error"
-                                            ]
+                                            "enum": ["error"]
                                         },
                                         "message": {
                                             "type": "string",
-                                            "enum": [
-                                                "Route not found"
-                                            ]
+                                            "enum": ["Route not found"]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message"
-                                    ]
+                                    "required": ["status", "message"]
                                 }
                             }
                         }
@@ -89,9 +78,7 @@
         "/auth/register": {
             "post": {
                 "operationId": "auth.register",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -112,9 +99,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -123,10 +108,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message"
-                                    ]
+                                    "required": ["status", "message"]
                                 }
                             }
                         }
@@ -140,9 +122,7 @@
         "/auth/login": {
             "post": {
                 "operationId": "auth.login",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -163,9 +143,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -177,11 +155,7 @@
                                             "type": "string"
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message",
-                                        "token"
-                                    ]
+                                    "required": ["status", "message", "token"]
                                 }
                             }
                         }
@@ -195,21 +169,14 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "error"
-                                            ]
+                                            "enum": ["error"]
                                         },
                                         "error": {
                                             "type": "string",
-                                            "enum": [
-                                                "Could not create token"
-                                            ]
+                                            "enum": ["Could not create token"]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "error"
-                                    ]
+                                    "required": ["status", "error"]
                                 }
                             }
                         }
@@ -223,21 +190,14 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "error"
-                                            ]
+                                            "enum": ["error"]
                                         },
                                         "error": {
                                             "type": "string",
-                                            "enum": [
-                                                "Invalid credentials"
-                                            ]
+                                            "enum": ["Invalid credentials"]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "error"
-                                    ]
+                                    "required": ["status", "error"]
                                 }
                             }
                         }
@@ -251,9 +211,7 @@
         "/auth/logout": {
             "post": {
                 "operationId": "auth.logout",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -264,9 +222,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -275,10 +231,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message"
-                                    ]
+                                    "required": ["status", "message"]
                                 }
                             }
                         }
@@ -292,9 +245,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "error"
-                                            ]
+                                            "enum": ["error"]
                                         },
                                         "error": {
                                             "type": "string",
@@ -303,10 +254,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "error"
-                                    ]
+                                    "required": ["status", "error"]
                                 }
                             }
                         }
@@ -317,9 +265,7 @@
         "/auth/profile": {
             "post": {
                 "operationId": "auth.profile",
-                "tags": [
-                    "Auth"
-                ],
+                "tags": ["Auth"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -330,18 +276,13 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/UserResource"
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "data"
-                                    ]
+                                    "required": ["status", "data"]
                                 }
                             }
                         }
@@ -355,21 +296,14 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "error"
-                                            ]
+                                            "enum": ["error"]
                                         },
                                         "error": {
                                             "type": "string",
-                                            "enum": [
-                                                "Invalid token"
-                                            ]
+                                            "enum": ["Invalid token"]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "error"
-                                    ]
+                                    "required": ["status", "error"]
                                 }
                             }
                         }
@@ -381,9 +315,7 @@
             "get": {
                 "operationId": "lists.index",
                 "summary": "Display a listing of the resource",
-                "tags": [
-                    "Lists"
-                ],
+                "tags": ["Lists"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -394,9 +326,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -411,11 +341,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["status", "message", "data"]
                                 }
                             }
                         }
@@ -425,9 +351,7 @@
             "post": {
                 "operationId": "lists.store",
                 "summary": "Store a newly created resource in storage",
-                "tags": [
-                    "Lists"
-                ],
+                "tags": ["Lists"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -448,9 +372,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -462,11 +384,7 @@
                                             "$ref": "#/components/schemas/ListResource"
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["status", "message", "data"]
                                 }
                             }
                         }
@@ -481,9 +399,7 @@
             "get": {
                 "operationId": "lists.show",
                 "summary": "Display the specified resource",
-                "tags": [
-                    "Lists"
-                ],
+                "tags": ["Lists"],
                 "parameters": [
                     {
                         "name": "id",
@@ -510,9 +426,7 @@
             "put": {
                 "operationId": "lists.update",
                 "summary": "Update the specified resource in storage",
-                "tags": [
-                    "Lists"
-                ],
+                "tags": ["Lists"],
                 "parameters": [
                     {
                         "name": "id",
@@ -553,9 +467,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "error"
-                                            ]
+                                            "enum": ["error"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -564,10 +476,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message"
-                                    ]
+                                    "required": ["status", "message"]
                                 }
                             }
                         }
@@ -580,9 +489,7 @@
             "delete": {
                 "operationId": "lists.destroy",
                 "summary": "Remove the specified resource from storage",
-                "tags": [
-                    "Lists"
-                ],
+                "tags": ["Lists"],
                 "parameters": [
                     {
                         "name": "id",
@@ -603,9 +510,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -614,10 +519,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message"
-                                    ]
+                                    "required": ["status", "message"]
                                 }
                             }
                         }
@@ -629,9 +531,7 @@
             "get": {
                 "operationId": "tasks.index",
                 "summary": "Display a listing of the resource",
-                "tags": [
-                    "Tasks"
-                ],
+                "tags": ["Tasks"],
                 "responses": {
                     "200": {
                         "description": "",
@@ -642,9 +542,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "data": {
                                             "type": "array",
@@ -653,10 +551,7 @@
                                             }
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "data"
-                                    ]
+                                    "required": ["status", "data"]
                                 }
                             }
                         }
@@ -666,9 +561,7 @@
             "post": {
                 "operationId": "tasks.store",
                 "summary": "Store a newly created resource in storage",
-                "tags": [
-                    "Tasks"
-                ],
+                "tags": ["Tasks"],
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -689,9 +582,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -703,11 +594,7 @@
                                             "$ref": "#/components/schemas/TaskResource"
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message",
-                                        "data"
-                                    ]
+                                    "required": ["status", "message", "data"]
                                 }
                             }
                         }
@@ -722,9 +609,7 @@
             "get": {
                 "operationId": "tasks.show",
                 "summary": "Display the specified resource",
-                "tags": [
-                    "Tasks"
-                ],
+                "tags": ["Tasks"],
                 "parameters": [
                     {
                         "name": "id",
@@ -745,18 +630,13 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "data": {
                                             "$ref": "#/components/schemas/TaskResource"
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "data"
-                                    ]
+                                    "required": ["status", "data"]
                                 }
                             }
                         }
@@ -766,9 +646,7 @@
             "put": {
                 "operationId": "tasks.update",
                 "summary": "Update the specified resource in storage",
-                "tags": [
-                    "Tasks"
-                ],
+                "tags": ["Tasks"],
                 "parameters": [
                     {
                         "name": "id",
@@ -801,9 +679,7 @@
                                             "properties": {
                                                 "status": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "success"
-                                                    ]
+                                                    "enum": ["success"]
                                                 },
                                                 "message": {
                                                     "type": "string",
@@ -826,9 +702,7 @@
                                             "properties": {
                                                 "status": {
                                                     "type": "string",
-                                                    "enum": [
-                                                        "success"
-                                                    ]
+                                                    "enum": ["success"]
                                                 },
                                                 "message": {
                                                     "type": "string",
@@ -837,10 +711,7 @@
                                                     ]
                                                 }
                                             },
-                                            "required": [
-                                                "status",
-                                                "message"
-                                            ]
+                                            "required": ["status", "message"]
                                         }
                                     ]
                                 }
@@ -855,9 +726,7 @@
             "delete": {
                 "operationId": "tasks.destroy",
                 "summary": "Remove the specified resource from storage",
-                "tags": [
-                    "Tasks"
-                ],
+                "tags": ["Tasks"],
                 "parameters": [
                     {
                         "name": "id",
@@ -878,9 +747,7 @@
                                     "properties": {
                                         "status": {
                                             "type": "string",
-                                            "enum": [
-                                                "success"
-                                            ]
+                                            "enum": ["success"]
                                         },
                                         "message": {
                                             "type": "string",
@@ -889,10 +756,7 @@
                                             ]
                                         }
                                     },
-                                    "required": [
-                                        "status",
-                                        "message"
-                                    ]
+                                    "required": ["status", "message"]
                                 }
                             }
                         }
@@ -917,18 +781,13 @@
                         "maxLength": 255
                     },
                     "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "is_achieved": {
                         "type": "boolean"
                     }
                 },
-                "required": [
-                    "name"
-                ],
+                "required": ["name"],
                 "title": "ListRequest"
             },
             "ListResource": {
@@ -947,16 +806,10 @@
                         "type": "string"
                     },
                     "created_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "updated_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     }
                 },
                 "required": [
@@ -982,10 +835,7 @@
                         "maxLength": 14
                     }
                 },
-                "required": [
-                    "email",
-                    "password"
-                ],
+                "required": ["email", "password"],
                 "title": "LoginRequest"
             },
             "RegisterRequest": {
@@ -1028,11 +878,7 @@
                     },
                     "status": {
                         "type": "string",
-                        "enum": [
-                            "pending",
-                            "in_progress",
-                            "completed"
-                        ]
+                        "enum": ["pending", "in_progress", "completed"]
                     },
                     "priority": {
                         "type": "integer",
@@ -1040,44 +886,25 @@
                         "maximum": 5
                     },
                     "description": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "assigned_to": {
-                        "type": [
-                            "integer",
-                            "null"
-                        ]
+                        "type": ["integer", "null"]
                     },
                     "due_date": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "completed_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     },
                     "reminder_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ],
+                        "type": ["string", "null"],
                         "format": "date-time"
                     }
                 },
-                "required": [
-                    "title",
-                    "status",
-                    "priority"
-                ],
+                "required": ["title", "status", "priority"],
                 "title": "TaskRequest"
             },
             "TaskResource": {
@@ -1102,22 +929,13 @@
                         "type": "string"
                     },
                     "completed_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "reminder_at": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     },
                     "due_date": {
-                        "type": [
-                            "string",
-                            "null"
-                        ]
+                        "type": ["string", "null"]
                     }
                 },
                 "required": [
@@ -1152,13 +970,7 @@
                         "type": "string"
                     }
                 },
-                "required": [
-                    "id",
-                    "name",
-                    "email",
-                    "created_at",
-                    "updated_at"
-                ],
+                "required": ["id", "name", "email", "created_at", "updated_at"],
                 "title": "UserResource"
             }
         },
@@ -1185,10 +997,7 @@
                                     }
                                 }
                             },
-                            "required": [
-                                "message",
-                                "errors"
-                            ]
+                            "required": ["message", "errors"]
                         }
                     }
                 }

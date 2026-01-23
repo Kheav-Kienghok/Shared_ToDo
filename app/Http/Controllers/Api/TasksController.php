@@ -24,9 +24,13 @@ class TasksController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(TaskIndexRequest $request, Lists $list = null): JsonResponse
-    {
-        $this->logger->debug("Fetching tasks for list_id={$list->id} at " . now());
+    public function index(
+        TaskIndexRequest $request,
+        Lists $list = null,
+    ): JsonResponse {
+        $this->logger->debug(
+            "Fetching tasks for list_id={$list->id} at " . now(),
+        );
 
         $query = Tasks::query();
 
@@ -34,7 +38,10 @@ class TasksController extends Controller
             $query->where("list_id", $list->id);
         } else {
             // Only tasks user has access to
-            $query->whereHas('list.users', fn($q) => $q->where('user_id', auth()->id()));
+            $query->whereHas(
+                "list.users",
+                fn($q) => $q->where("user_id", auth()->id()),
+            );
         }
 
         // Filters (already validated)
@@ -47,13 +54,16 @@ class TasksController extends Controller
         }
 
         if ($request->boolean("overdue")) {
-            $query->whereDate("due_date", "<", Carbon::today())
+            $query
+                ->whereDate("due_date", "<", Carbon::today())
                 ->where("status", "!=", "done");
         }
 
         $tasks = $query->orderBy("due_date")->get();
 
-        $this->logger->info("Fetched all tasks", ['task_count' => $tasks->count()]);
+        $this->logger->info("Fetched all tasks", [
+            "task_count" => $tasks->count(),
+        ]);
 
         return response()->json([
             "status" => "success",
@@ -68,17 +78,18 @@ class TasksController extends Controller
     public function store(Lists $list, TaskRequest $request): JsonResponse
     {
         $this->logger->info("Creating task in list_id={$list->id}", [
-            'user_id' => auth()->id(),
-            'data' => $request->validated(),
+            "user_id" => auth()->id(),
+            "data" => $request->validated(),
         ]);
 
         // Use relationship to automatically assign list_id
-        $task = $list->tasks()->create(array_merge(
-            $request->validated(),
-            ['created_by' => auth()->id()]
-        ));
+        $task = $list->tasks()->create(
+            array_merge($request->validated(), [
+                "created_by" => auth()->id(),
+            ]),
+        );
 
-        $this->logger->info("Created new task", ['task_id' => $task->id]);
+        $this->logger->info("Created new task", ["task_id" => $task->id]);
 
         return response()->json(
             [
@@ -95,16 +106,24 @@ class TasksController extends Controller
      */
     public function show(string $listId, string $taskId): JsonResponse
     {
-        $task = Tasks::where('id', $taskId)
-            ->where('list_id', $listId)
+        $task = Tasks::where("id", $taskId)
+            ->where("list_id", $listId)
             ->firstOrFail();
 
         // Optional: double-check user is member of list
-        if (!$task->list->users()->where('user_id', auth()->id())->exists()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized access to task'
-            ], 403);
+        if (
+            !$task->list
+                ->users()
+                ->where("user_id", auth()->id())
+                ->exists()
+        ) {
+            return response()->json(
+                [
+                    "status" => "error",
+                    "message" => "Unauthorized access to task",
+                ],
+                403,
+            );
         }
 
         return response()->json([
@@ -118,9 +137,8 @@ class TasksController extends Controller
      */
     public function update(TaskRequest $request, Tasks $task): JsonResponse
     {
-
         $this->logger->debug("Updating task_id={$task->id} with data", [
-            'data' => $request->all(),
+            "data" => $request->all(),
         ]);
 
         if (empty($request->all())) {
@@ -133,7 +151,7 @@ class TasksController extends Controller
         $data = $request->safe()->only(array_keys($request->rules()));
         $task->update($data);
 
-        $this->logger->info("Updated task", ['task_id' => $task->id]);
+        $this->logger->info("Updated task", ["task_id" => $task->id]);
 
         return response()->json([
             "status" => "success",
@@ -150,7 +168,7 @@ class TasksController extends Controller
         $task = Tasks::findOrFail($id);
         $task->delete();
 
-        $this->logger->info("Deleted task", ['task_id' => $id]);
+        $this->logger->info("Deleted task", ["task_id" => $id]);
 
         return response()->json([
             "status" => "success",
@@ -158,15 +176,17 @@ class TasksController extends Controller
         ]);
     }
 
-
     public function markAsCompleted(string $id): JsonResponse
     {
         $task = Tasks::findOrFail($id);
-        $task->status = 'completed';
-        $task->completed_at = now();
-        $task->save();
 
-        $this->logger->info("Marked task as completed", ['task_id' => $id]);
+        $request = new TaskRequest([
+            'status' => 'completed'
+        ]);
+
+        $task->update($request->validated());
+
+        $this->logger->info("Marked task as completed", ["task_id" => $id]);
 
         return response()->json([
             "status" => "success",
@@ -177,9 +197,12 @@ class TasksController extends Controller
 
     public function assignedToUser(string $userId): JsonResponse
     {
-        $tasks = Tasks::where('assigned_to', $userId)->get();
+        $tasks = Tasks::where("assigned_to", $userId)->get();
 
-        $this->logger->info("Fetched tasks assigned to user", ['user_id' => $userId, 'task_count' => $tasks->count()]);
+        $this->logger->info("Fetched tasks assigned to user", [
+            "user_id" => $userId,
+            "task_count" => $tasks->count(),
+        ]);
 
         return response()->json([
             "status" => "success",
