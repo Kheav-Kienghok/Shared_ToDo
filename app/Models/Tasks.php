@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Tasks extends Model
 {
@@ -54,5 +55,10 @@ class Tasks extends Model
     public function comments()
     {
         return $this->hasMany(TaskComments::class, 'task_id');
+    }
+
+    public function recurrence(): HasOne
+    {
+        return $this->hasOne(TaskRecurrences::class, 'task_id');
     }
 }

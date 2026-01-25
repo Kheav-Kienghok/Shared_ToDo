@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\HabitsController;
 use App\Http\Controllers\Api\ListsController;
 use App\Http\Controllers\Api\TaskCommentsController;
 use App\Http\Controllers\Api\TasksController;
@@ -25,79 +26,92 @@ Route::prefix("auth")->group(function () {
  */
 Route::middleware("jwt")->group(function () {
 
-    /*
-    |--------------------------------------------------------------------------
-    | Lists Core
-    |--------------------------------------------------------------------------
-    */
-    Route::apiResource("lists", ListsController::class)->except(["update", "show"]);
+    Route::prefix("lists")->group(function () {
 
-    Route::get("lists/{list}", [ListsController::class, "show"]);
+        /*
+        |--------------------------------------------------------------------------
+        | Lists Core
+        |--------------------------------------------------------------------------
+        */
+        Route::apiResource("/", ListsController::class)->except(["update", "show"]);
 
-    // Editors + Owners can update list
-    Route::middleware("check.list.role:owner,editor")->group(function () {
-        Route::patch("lists/{list}", [ListsController::class, "update"]);
+        Route::get("{list}", [ListsController::class, "show"]);
+
+        // Editors + Owners can update list
+        Route::middleware("check.list.role:owner,editor")->group(function () {
+            Route::patch("{list}", [ListsController::class, "update"]);
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | List Sharing & Permissions (Owner only)
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware("check.list.role:owner")->group(function () {
+
+            Route::post("{list}/share", [ListsController::class, "share"]);
+            Route::patch("{list}/users", [ListsController::class, "updateUserRole"]);
+            Route::delete("{list}/users", [ListsController::class, "removeUser"]);
+        });
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tasks under Lists
+        |--------------------------------------------------------------------------
+        */
+        Route::middleware("check.list.role:owner,editor,viewer")->group(function () {
+
+            // List + filter tasks
+            Route::get("{list}/tasks", [TasksController::class, "index"]);
+
+            // Show single task inside list
+            Route::get("{list}/tasks/{task}", [TasksController::class, "show"]);
+
+            // Create task inside list
+            Route::post("{list}/tasks", [TasksController::class, "store"]);
+        });
+
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | List Sharing & Permissions (Owner only)
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware("check.list.role:owner")->group(function () {
+    Route::prefix("tasks")->group(function () {
 
-        // Share list with new user
-        Route::post("lists/{list}/share", [ListsController::class, "share"]);
+        Route::patch("{task}", [TasksController::class, "update"]);
+        Route::delete("{task}", [TasksController::class, "destroy"]);
 
-        // Update user role in list (user_id in body)
-        Route::patch("lists/{list}/users", [ListsController::class, "updateUserRole"]);
+        Route::post("{task}/complete", [TasksController::class, "markAsCompleted"]);
+        Route::post("{task}/assign", [TasksController::class, "assignedToUser"]);
 
-        // Remove user from list (user_id in body)
-        Route::delete("lists/{list}/users", [ListsController::class, "removeUser"]);
+        /*
+        |--------------------------------------------------------------------------
+        | Task Comments
+        |--------------------------------------------------------------------------
+        */
+        Route::get("{task}/comments", [TaskCommentsController::class, "index"]);
+        Route::post("{task}/comments", [TaskCommentsController::class, "store"]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Task Recurrences & Completions
+        |--------------------------------------------------------------------------
+        */
+        Route::post("{task}/reccurrences", [HabitsController::class, "addRecurrence"]);
+        Route::post("{task}/completions", [HabitsController::class, "addCompletion"]);
+    });
+
+    Route::prefix("comments")->group(function () {
+        Route::delete("{comment}", [TaskCommentsController::class, "destroy"]);
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Tasks under Lists
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware("check.list.role:owner,editor,viewer")->group(function () {
-
-        // List + filter tasks
-        Route::get("lists/{list}/tasks", [TasksController::class, "index"]);
-
-        // Show single task (important — prevents cross-list leaks)
-        Route::get("lists/{list}/tasks/{task}", [TasksController::class, "show"]);
-
-        // Create task
-        Route::post("lists/{list}/tasks", [TasksController::class, "store"]);
+    Route::prefix("habits")->group(function () {
+        Route::get("streaks", [HabitsController::class, "index"]);
     });
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | Tasks Direct Actions
-    |--------------------------------------------------------------------------
-    */
-    Route::patch("tasks/{task}", [TasksController::class, "update"]);
-    Route::delete("tasks/{task}", [TasksController::class, "destroy"]);
-
-    Route::post("tasks/{task}/complete", [TasksController::class, "markAsCompleted"]);
-    Route::post("tasks/{task}/assign", [TasksController::class, "assignedToUser"]);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Task Comments
-    |--------------------------------------------------------------------------
-    */
-    Route::get("tasks/{task}/comments", [TaskCommentsController::class, "index"]);
-    Route::post("tasks/{task}/comments", [TaskCommentsController::class, "store"]);
-    Route::delete("comments/{comment}", [TaskCommentsController::class, "destroy"]);
 });
-
 
 /*
 |--------------------------------------------------------------------------
