@@ -10,8 +10,10 @@ use App\Http\Resources\ListResource;
 use App\Models\Lists;
 use App\Models\ListUser;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Psr\Log\LoggerInterface;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 use Throwable;
 
 class ListsController extends Controller
@@ -29,14 +31,20 @@ class ListsController extends Controller
      */
     public function index()
     {
-        $data = Lists::where("owner_id", auth()->id())
-            ->get()
-            ->map(function ($list) {
-                return new ListResource($list);
-            });
+        $userId = auth()->id();
+        $cacheKey = "api:lists:user:{$userId}:";
 
-        $this->logger->info("Retrieved lists for user {user_id}", [
-            "user_id" => auth()->id() ?? "unknown",
+        // Cache FINAL transformed data
+        $data = Cache::remember($cacheKey, 60, function () use ($userId) {
+            $lists = Lists::where('owner_id', $userId)->get();
+
+            // Transform BEFORE caching
+            return ListResource::collection($lists)->resolve();
+        });
+
+        $this->logger->info('Retrieved lists', [
+            'user_id' => $userId,
+            'count' => count($data),
         ]);
 
         return response()->json([

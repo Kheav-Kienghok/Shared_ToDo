@@ -12,12 +12,21 @@ Route::get("/health", function () {
 });
 
 Route::prefix("auth")->group(function () {
-    Route::post("register", [AuthController::class, "register"]);
-    Route::post("login", [AuthController::class, "login"]);
 
-    Route::middleware("jwt")->group(function () {
+    // Register — 25/hr per IP
+    Route::post("register", [AuthController::class, "register"])
+        ->middleware("throttle:auth.register");
+
+    // Login — 25/hr per IP + email
+    Route::post("login", [AuthController::class, "login"])
+        ->middleware("throttle:auth.login");
+
+    // Protected routes — JWT + rate limited
+    Route::middleware(["jwt", "throttle:auth.general"])->group(function () {
+
         Route::post("logout", [AuthController::class, "logout"]);
         Route::post("profile", [AuthController::class, "profile"]);
+
     });
 });
 
